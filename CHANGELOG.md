@@ -8,18 +8,18 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ## [Unreleased]
 
 ### Added
-- Validação de CPF com algoritmo módulo 11
-- Validação de CNPJ com algoritmo módulo 11
-- Formatação e máscara de CPF/CNPJ
-- Identificação de estado (UF) pelo CPF
-- Identificação de matriz/filial pelo CNPJ
-- Integração com API Serpro/ConectaGov (CNPJ)
-- Integração com API Receita Federal (CPF - consulta pública)
-- Integração com APIs de terceiros (cpfcnpj.com.br, cpf-brasil.org)
-- Testes unitários com cobertura completa
-- Testes end-to-end
-- Exemplos de uso
-- CI/CD com GitHub Actions
+- Geração aleatória de CPF e CNPJ válidos (`cpf.Generate`, `cnpj.Generate`, `brdocs.GenerateCPF`/`GenerateCNPJ`)
+- Cache de consultas nas APIs via `api.WithCacheTTL`
+- Resultado tipado para a API cpfcnpj.com.br (`api.CPFCNPJResult`) e método `Client.ConsultaCPFCNPJ`
+
+### Fixed
+- Exemplo `ExampleState` usava CPF inválido e derrubava `go test ./...`
+- `CNPJResult.IsActive` passou a considerar apenas situação ATIVA (código 2); códigos 1 (NULA), 3 (SUSPENSA), 4 (INAPTA) e 8 (BAIXADA) agora retornam `false`
+- Token OAuth do Serpro agora é reutilizado entre chamadas do mesmo `Client`
+- Removidos os sentinelas mortos `ErrInvalidDigits` dos pacotes `cpf` e `cnpj`
+
+### Removed
+- Pacote interno `internal/httpclient` (código morto, não utilizado pelo `api`)
 
 ## [1.0.0] - 2026-08-07
 

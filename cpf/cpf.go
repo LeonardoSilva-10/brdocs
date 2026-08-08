@@ -7,17 +7,18 @@
 package cpf
 
 import (
+	cryptorand "crypto/rand"
 	"errors"
+	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
 var (
 	// ErrInvalidLength is returned when the CPF does not have 11 digits.
 	ErrInvalidLength = errors.New("cpf: invalid length, expected 11 digits")
-	// ErrInvalidDigits is returned when the CPF contains non-numeric characters.
-	ErrInvalidDigits = errors.New("cpf: contains invalid characters")
 	// ErrRepeatedDigits is returned when all digits are the same (e.g., 111.111.111-11).
 	ErrRepeatedDigits = errors.New("cpf: all digits are repeated")
 	// ErrInvalidCheckDigit is returned when the check digits do not match.
@@ -84,33 +85,61 @@ func Mask(cpf string) string {
 
 // Generate creates a valid random CPF number.
 func Generate() string {
-	// Generate first 9 random digits
-	digits := make([]int, 9)
-	for i := 0; i < 9; i++ {
-		digits[i] = int('0' + byte(i%10)) // deterministic for tests, use crypto/rand in production
-	}
-	// Actually let's use a proper approach
-	cpf := "529982247" // known valid base, we'll compute proper check digits
-	digits = make([]int, 9)
-	for i := 0; i < 9; i++ {
-		digits[i] = int(cpf[i] - '0')
+	digits := randomDigits(9)
+
+	// Ensure the generated base is not all equal digits (e.g. 111.111.111),
+	// which would produce an invalid CPF.
+	if allDigitsEqual(digits) {
+		digits[0] = (digits[0] + 1) % 10
 	}
 
 	// Calculate first check digit
 	d1 := calculateCheckDigit(digits, 10)
-	digits = append(digits, d1)
+	withD1 := append(append([]int(nil), digits...), d1)
 
 	// Calculate second check digit
-	d2 := calculateCheckDigit(digits, 11)
+	d2 := calculateCheckDigit(withD1, 11)
 
-	result := make([]byte, 11)
-	for i := 0; i < 9; i++ {
-		result[i] = byte(digits[i] + '0')
+	return digitsToString(append(withD1, d2))
+}
+
+// randomDigits returns n random decimal digits (0-9).
+// It uses crypto/rand and falls back to a time-seeded PRNG if the OS entropy
+// source is unavailable.
+func randomDigits(n int) []int {
+	digits := make([]int, n)
+	buf := make([]byte, n)
+	if _, err := cryptorand.Read(buf); err != nil {
+		rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+		for i := range digits {
+			digits[i] = rng.Intn(10)
+		}
+		return digits
 	}
-	result[9] = byte(d1 + '0')
-	result[10] = byte(d2 + '0')
+	for i := range digits {
+		digits[i] = int(buf[i] % 10)
+	}
+	return digits
+}
 
-	return string(result)
+// allDigitsEqual reports whether every digit in the slice has the same value.
+func allDigitsEqual(digits []int) bool {
+	first := digits[0]
+	for _, d := range digits[1:] {
+		if d != first {
+			return false
+		}
+	}
+	return true
+}
+
+// digitsToString converts a slice of digits into its string representation.
+func digitsToString(digits []int) string {
+	b := make([]byte, len(digits))
+	for i, d := range digits {
+		b[i] = byte('0' + d)
+	}
+	return string(b)
 }
 
 // hasRepeatedDigits checks if all digits in the CPF are the same.

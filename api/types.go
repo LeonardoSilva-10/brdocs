@@ -1,13 +1,16 @@
 package api
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // SituacaoCadastral represents the registration status.
 type SituacaoCadastral struct {
-	Codigo     string `json:"codigo"`
-	Descricao  string `json:"descricao"`
-	Data       string `json:"data"`
-	Motivo     string `json:"motivo"`
+	Codigo    string `json:"codigo"`
+	Descricao string `json:"descricao"`
+	Data      string `json:"data"`
+	Motivo    string `json:"motivo"`
 }
 
 // Endereco represents a Brazilian address.
@@ -41,53 +44,70 @@ type NaturezaJuridica struct {
 
 // Socio represents a company partner/shareholder.
 type Socio struct {
-	CPF           string `json:"cpf"`
-	Nome          string `json:"nome"`
-	Qualificacao  string `json:"qualificacao"`
+	CPF          string `json:"cpf"`
+	Nome         string `json:"nome"`
+	Qualificacao string `json:"qualificacao"`
 }
 
 // CNPJResult holds the data returned from a CNPJ query.
 type CNPJResult struct {
-	NI                  string            `json:"ni"`
-	NomeEmpresarial     string            `json:"nome_empresarial"`
-	NomeFantasia        string            `json:"nome_fantasia"`
-	DataAbertura        string            `json:"data_abertura"`
-	SituacaoCadastral   SituacaoCadastral `json:"situacao_cadastral"`
-	NaturezaJuridica    NaturezaJuridica  `json:"natureza_juridica"`
-	CNAEPrincipal       CNAE              `json:"cnae_principal"`
-	CNAESecundarios     []CNAE            `json:"cnae_secundarios"`
-	Endereco            Endereco          `json:"endereco"`
-	Telefones           []Telefone        `json:"telefones"`
-	CorreioEletronico   string            `json:"correio_eletronico"`
-	CapitalSocial       float64           `json:"capital_social"`
-	Porte               string            `json:"porte"`
-	Socios              []Socio           `json:"socios"`
-	OptanteSimples      bool              `json:"optante_simples"`
-	OptanteSIMEI        bool              `json:"optante_simei"`
-	TipoEstabelecimento string            `json:"tipo_estabelecimento"`
-	Orgao               string            `json:"orgao"`
-	EnteFederativo      string            `json:"ente_federativo"`
-	SituacaoEspecial    string            `json:"situacao_especial"`
-	DataSituacaoEspecial string           `json:"data_situacao_especial"`
+	NI                   string            `json:"ni"`
+	NomeEmpresarial      string            `json:"nome_empresarial"`
+	NomeFantasia         string            `json:"nome_fantasia"`
+	DataAbertura         string            `json:"data_abertura"`
+	SituacaoCadastral    SituacaoCadastral `json:"situacao_cadastral"`
+	NaturezaJuridica     NaturezaJuridica  `json:"natureza_juridica"`
+	CNAEPrincipal        CNAE              `json:"cnae_principal"`
+	CNAESecundarios      []CNAE            `json:"cnae_secundarios"`
+	Endereco             Endereco          `json:"endereco"`
+	Telefones            []Telefone        `json:"telefones"`
+	CorreioEletronico    string            `json:"correio_eletronico"`
+	CapitalSocial        float64           `json:"capital_social"`
+	Porte                string            `json:"porte"`
+	Socios               []Socio           `json:"socios"`
+	OptanteSimples       bool              `json:"optante_simples"`
+	OptanteSIMEI         bool              `json:"optante_simei"`
+	TipoEstabelecimento  string            `json:"tipo_estabelecimento"`
+	Orgao                string            `json:"orgao"`
+	EnteFederativo       string            `json:"ente_federativo"`
+	SituacaoEspecial     string            `json:"situacao_especial"`
+	DataSituacaoEspecial string            `json:"data_situacao_especial"`
 }
 
 // CPFResult holds the data returned from a CPF query.
 type CPFResult struct {
-	CPF                string    `json:"cpf"`
-	Nome               string    `json:"nome"`
-	NomeCivil          string    `json:"nome_civil"`
-	NomeSocial         string    `json:"nome_social"`
-	SituacaoCadastral  string    `json:"situacao_cadastral"`
-	DataInscricao      string    `json:"data_inscricao"`
-	DataNascimento     string    `json:"data_nascimento"`
-	DigitoVerificador  string    `json:"digito_verificador"`
-	AnoObito           string    `json:"ano_obito"`
+	CPF               string    `json:"cpf"`
+	Nome              string    `json:"nome"`
+	NomeCivil         string    `json:"nome_civil"`
+	NomeSocial        string    `json:"nome_social"`
+	SituacaoCadastral string    `json:"situacao_cadastral"`
+	DataInscricao     string    `json:"data_inscricao"`
+	DataNascimento    string    `json:"data_nascimento"`
+	DigitoVerificador string    `json:"digito_verificador"`
+	AnoObito          string    `json:"ano_obito"`
 	ConsultaDataHora  time.Time `json:"consulta_datahora"`
 }
 
-// IsActive returns true if the CNPJ is active (situação cadastral = 1).
+// CPFCNPJResult holds the generic response returned by the cpfcnpj.com.br API.
+type CPFCNPJResult struct {
+	Status         string `json:"status"`
+	Message        string `json:"message"`
+	Nome           string `json:"nome"`
+	RazaoSocial    string `json:"razao_social"`
+	CPF            string `json:"cpf"`
+	CNPJ           string `json:"cnpj"`
+	DataNascimento string `json:"data_nascimento"`
+}
+
+// IsActive returns true if the CNPJ has an active registration status.
+//
+// The Receita Federal "situação cadastral" code for CNPJ is 2 (ATIVA). Codes
+// 1 (NULA), 3 (SUSPENSA), 4 (INAPTA) and 8 (BAIXADA) are not active. The
+// description is also matched as a fallback for providers that return
+// descriptive values instead of codes.
 func (r *CNPJResult) IsActive() bool {
-	return r.SituacaoCadastral.Codigo == "1" || r.SituacaoCadastral.Codigo == "2"
+	return r.SituacaoCadastral.Codigo == "2" ||
+		strings.Contains(strings.ToUpper(r.SituacaoCadastral.Descricao), "ATIVA")
 }
 
 // IsRegular returns true if the CPF is regular.

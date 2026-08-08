@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 // thirdPartyClient handles third-party API integrations.
@@ -16,15 +15,17 @@ func newThirdPartyClient(parent *Client) *thirdPartyClient {
 	return &thirdPartyClient{parent: parent}
 }
 
-// ConsultaCPFCPFCNPJ queries CPF or CNPJ from cpfcnpj.com.br.
-func (tp *thirdPartyClient) ConsultaCPFCPFCNPJ(ctx context.Context, document string) (interface{}, error) {
+// ConsultaCPFCNPJ queries CPF or CNPJ from cpfcnpj.com.br.
+func (tp *thirdPartyClient) ConsultaCPFCNPJ(ctx context.Context, document string) (*CPFCNPJResult, error) {
 	if tp.parent.cpfCnpjAPIKey == "" {
 		return nil, fmt.Errorf("cpfcnpj: API key is required")
 	}
 
-	document = strings.ReplaceAll(document, ".", "")
-	document = strings.ReplaceAll(document, "/", "")
-	document = strings.ReplaceAll(document, "-", "")
+	document = sanitizeDocument(document)
+	cacheKey := "cpfcnpj:" + document
+	if cached := tp.parent.cacheGet(cacheKey); cached != nil {
+		return cached.(*CPFCNPJResult), nil
+	}
 
 	endpoint := fmt.Sprintf("%s/%s/%s", tp.parent.baseURLs["cpfcnpj"], document, tp.parent.cpfCnpjAPIKey)
 
@@ -35,12 +36,17 @@ func (tp *thirdPartyClient) ConsultaCPFCPFCNPJ(ctx context.Context, document str
 
 	req.Header.Set("Accept", "application/json")
 
-	var result map[string]interface{}
+	var result CPFCNPJResult
 	if err := tp.parent.doRequest(ctx, req, &result); err != nil {
 		return nil, fmt.Errorf("cpfcnpj: %w", err)
 	}
 
-	return result, nil
+	if result.Status != "" && result.Status != "OK" {
+		return nil, fmt.Errorf("cpfcnpj: query failed: %s", result.Message)
+	}
+
+	tp.parent.cacheSet(cacheKey, &result)
+	return &result, nil
 }
 
 // ConsultaCPFBrasil queries CPF from cpf-brasil.org.
@@ -49,8 +55,11 @@ func (tp *thirdPartyClient) ConsultaCPFBrasil(ctx context.Context, cpf string) (
 		return nil, fmt.Errorf("cpfbrasil: API key is required")
 	}
 
-	cpf = strings.ReplaceAll(cpf, ".", "")
-	cpf = strings.ReplaceAll(cpf, "-", "")
+	cpf = sanitizeDocument(cpf)
+	cacheKey := "cpfbrasil:" + cpf
+	if cached := tp.parent.cacheGet(cacheKey); cached != nil {
+		return cached.(*CPFResult), nil
+	}
 
 	endpoint := fmt.Sprintf("%s/cpf/%s", tp.parent.baseURLs["cpfbrasil"], cpf)
 
@@ -65,10 +74,10 @@ func (tp *thirdPartyClient) ConsultaCPFBrasil(ctx context.Context, cpf string) (
 	var response struct {
 		Success bool `json:"success"`
 		Data    struct {
-			CPF    string `json:"CPF"`
-			Nome   string `json:"NOME"`
-			Sexo   string `json:"SEXO"`
-			Nasc   string `json:"NASC"`
+			CPF  string `json:"CPF"`
+			Nome string `json:"NOME"`
+			Sexo string `json:"SEXO"`
+			Nasc string `json:"NASC"`
 		} `json:"data"`
 	}
 
@@ -80,17 +89,19 @@ func (tp *thirdPartyClient) ConsultaCPFBrasil(ctx context.Context, cpf string) (
 		return nil, fmt.Errorf("cpfbrasil: query failed")
 	}
 
-	return &CPFResult{
+	result := &CPFResult{
 		CPF:            response.Data.CPF,
 		Nome:           response.Data.Nome,
 		DataNascimento: response.Data.Nasc,
-	}, nil
+	}
+	tp.parent.cacheSet(cacheKey, result)
+	return result, nil
 }
 
-// ConsultaCPFCPFCNPJ is a convenience method on Client.
-func (c *Client) ConsultaCPFCPFCNPJ(ctx context.Context, document string) (interface{}, error) {
+// ConsultaCPFCNPJ is a convenience method on Client.
+func (c *Client) ConsultaCPFCNPJ(ctx context.Context, document string) (*CPFCNPJResult, error) {
 	tp := newThirdPartyClient(c)
-	return tp.ConsultaCPFCPFCNPJ(ctx, document)
+	return tp.ConsultaCPFCNPJ(ctx, document)
 }
 
 // ConsultaCPFBrasil is a convenience method on Client.

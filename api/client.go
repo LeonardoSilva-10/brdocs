@@ -7,23 +7,39 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
+	"sync"
 	"time"
+	"unicode"
 )
+
+// cacheEntry stores a cached query result and its expiry time.
+type cacheEntry struct {
+	value     interface{}
+	expiresAt time.Time
+}
 
 // Client is the main API client for CPF/CNPJ queries.
 type Client struct {
-	httpClient        *http.Client
-	serproConsumerKey string
+	httpClient           *http.Client
+	serpro               *serproClient
+	serproConsumerKey    string
 	serproConsumerSecret string
-	cpfCnpjAPIKey     string
-	cpfBrasilAPIKey   string
-	baseURLs          map[string]string
+	cpfCnpjAPIKey        string
+	cpfBrasilAPIKey      string
+	baseURLs             map[string]string
+
+	cacheMutex sync.RWMutex
+	cache      map[string]cacheEntry
+	cacheTTL   time.Duration
 }
 
 // Option configures a Client.
 type Option func(*Client)
 
 // NewClient creates a new API client with the given options.
+//
+// Result caching is disabled by default; enable it with WithCacheTTL.
 func NewClient(opts ...Option) *Client {
 	c := &Client{
 		httpClient: &http.Client{
@@ -39,6 +55,7 @@ func NewClient(opts ...Option) *Client {
 	for _, opt := range opts {
 		opt(c)
 	}
+	c.serpro = newSerproClient(c)
 	return c
 }
 
@@ -83,6 +100,64 @@ func WithBaseURL(provider, url string) Option {
 	return func(c *Client) {
 		c.baseURLs[provider] = url
 	}
+}
+
+// WithCacheTTL enables in-memory caching of successful query results.
+//
+// Results are cached per provider and document for the given duration. A TTL
+// of zero or less disables caching (the default). Only successful responses
+// are cached; HTTP errors and parse failures are never cached.
+func WithCacheTTL(ttl time.Duration) Option {
+	return func(c *Client) {
+		c.cacheTTL = ttl
+	}
+}
+
+// sanitizeDocument removes all non-digit characters from a document string.
+func sanitizeDocument(s string) string {
+	var b strings.Builder
+	b.Grow(len(s))
+	for _, r := range s {
+		if unicode.IsDigit(r) {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
+// cacheGet returns the cached value for key, or nil when the cache is
+// disabled, the key is missing, or the entry has expired.
+func (c *Client) cacheGet(key string) interface{} {
+	if c.cacheTTL <= 0 {
+		return nil
+	}
+	c.cacheMutex.RLock()
+	entry, ok := c.cache[key]
+	c.cacheMutex.RUnlock()
+	if !ok {
+		return nil
+	}
+	if time.Now().After(entry.expiresAt) {
+		c.cacheMutex.Lock()
+		delete(c.cache, key)
+		c.cacheMutex.Unlock()
+		return nil
+	}
+	return entry.value
+}
+
+// cacheSet stores value in the cache under key. It is a no-op when caching
+// is disabled.
+func (c *Client) cacheSet(key string, value interface{}) {
+	if c.cacheTTL <= 0 {
+		return
+	}
+	c.cacheMutex.Lock()
+	defer c.cacheMutex.Unlock()
+	if c.cache == nil {
+		c.cache = make(map[string]cacheEntry)
+	}
+	c.cache[key] = cacheEntry{value: value, expiresAt: time.Now().Add(c.cacheTTL)}
 }
 
 // doRequest performs an HTTP request and decodes the JSON response.

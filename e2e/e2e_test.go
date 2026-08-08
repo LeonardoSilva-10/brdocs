@@ -94,7 +94,7 @@ func TestCPFCNPJAPIIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	result, err := client.ConsultaCPFCPFCNPJ(ctx, "529.982.247-25")
+	result, err := client.ConsultaCPFCNPJ(ctx, "529.982.247-25")
 	require.NoError(t, err)
 	assert.NotNil(t, result)
 }

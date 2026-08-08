@@ -99,15 +99,20 @@ func (s *serproClient) getToken(ctx context.Context) (string, error) {
 
 // ConsultaCNPJ queries CNPJ data from Serpro/ConectaGov.
 func (s *serproClient) ConsultaCNPJ(ctx context.Context, cnpj string) (*CNPJResult, error) {
+	cnpj = sanitizeDocument(cnpj)
+	if len(cnpj) != 14 {
+		return nil, fmt.Errorf("serpro: invalid CNPJ length, expected 14 digits")
+	}
+
+	cacheKey := "serpro:" + cnpj
+	if cached := s.parent.cacheGet(cacheKey); cached != nil {
+		return cached.(*CNPJResult), nil
+	}
+
 	token, err := s.getToken(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	// Sanitize CNPJ
-	cnpj = strings.ReplaceAll(cnpj, ".", "")
-	cnpj = strings.ReplaceAll(cnpj, "/", "")
-	cnpj = strings.ReplaceAll(cnpj, "-", "")
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
 		s.parent.baseURLs["serpro"]+"/consulta-cnpj-df/v2/basica/"+cnpj,
@@ -125,11 +130,15 @@ func (s *serproClient) ConsultaCNPJ(ctx context.Context, cnpj string) (*CNPJResu
 		return nil, fmt.Errorf("serpro: %w", err)
 	}
 
+	s.parent.cacheSet(cacheKey, &result)
 	return &result, nil
 }
 
 // ConsultaCNPJ is a convenience method on Client.
 func (c *Client) ConsultaCNPJ(ctx context.Context, cnpj string) (*CNPJResult, error) {
-	sc := newSerproClient(c)
+	sc := c.serpro
+	if sc == nil {
+		sc = newSerproClient(c)
+	}
 	return sc.ConsultaCNPJ(ctx, cnpj)
 }

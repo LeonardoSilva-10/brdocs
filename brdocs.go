@@ -70,6 +70,16 @@ func CPFState(s string) []string {
 	return cpf.State(s)
 }
 
+// GenerateCPF returns a randomly generated valid CPF number.
+func GenerateCPF() string {
+	return cpf.Generate()
+}
+
+// GenerateCNPJ returns a randomly generated valid CNPJ number.
+func GenerateCNPJ() string {
+	return cnpj.Generate()
+}
+
 // CNPJIsHeadquarters checks if the CNPJ represents the headquarters (matriz).
 func CNPJIsHeadquarters(s string) bool {
 	return cnpj.IsHeadquarters(s)

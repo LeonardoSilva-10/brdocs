@@ -7,16 +7,17 @@
 package cnpj
 
 import (
+	cryptorand "crypto/rand"
 	"errors"
+	"math/rand"
 	"strings"
+	"time"
 	"unicode"
 )
 
 var (
 	// ErrInvalidLength is returned when the CNPJ does not have 14 digits.
 	ErrInvalidLength = errors.New("cnpj: invalid length, expected 14 digits")
-	// ErrInvalidDigits is returned when the CNPJ contains non-numeric characters.
-	ErrInvalidDigits = errors.New("cnpj: contains invalid characters")
 	// ErrRepeatedDigits is returned when all digits are the same.
 	ErrRepeatedDigits = errors.New("cnpj: all digits are repeated")
 	// ErrInvalidCheckDigit is returned when the check digits do not match.
@@ -93,6 +94,65 @@ func BranchCode(cnpj string) string {
 // IsHeadquarters checks if the CNPJ represents the headquarters (matriz).
 func IsHeadquarters(cnpj string) bool {
 	return BranchCode(cnpj) == "0001"
+}
+
+// Generate creates a valid random CNPJ number.
+func Generate() string {
+	digits := randomDigits(12)
+
+	// Ensure the generated base is not all equal digits (e.g. 11.111.111/1111-11),
+	// which would produce an invalid CNPJ.
+	if allDigitsEqual(digits) {
+		digits[0] = (digits[0] + 1) % 10
+	}
+
+	// First check digit (12 digits -> weights 5,4,3,2,9,8,7,6,5,4,3,2)
+	d1 := calculateCheckDigit(digits)
+	withD1 := append(append([]int(nil), digits...), d1)
+
+	// Second check digit (13 digits -> weights 6,5,4,3,2,9,8,7,6,5,4,3,2)
+	d2 := calculateCheckDigit(withD1)
+
+	return digitsToString(append(withD1, d2))
+}
+
+// randomDigits returns n random decimal digits (0-9).
+// It uses crypto/rand and falls back to a time-seeded PRNG if the OS entropy
+// source is unavailable.
+func randomDigits(n int) []int {
+	digits := make([]int, n)
+	buf := make([]byte, n)
+	if _, err := cryptorand.Read(buf); err != nil {
+		rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+		for i := range digits {
+			digits[i] = rng.Intn(10)
+		}
+		return digits
+	}
+	for i := range digits {
+		digits[i] = int(buf[i] % 10)
+	}
+	return digits
+}
+
+// allDigitsEqual reports whether every digit in the slice has the same value.
+func allDigitsEqual(digits []int) bool {
+	first := digits[0]
+	for _, d := range digits[1:] {
+		if d != first {
+			return false
+		}
+	}
+	return true
+}
+
+// digitsToString converts a slice of digits into its string representation.
+func digitsToString(digits []int) string {
+	b := make([]byte, len(digits))
+	for i, d := range digits {
+		b[i] = byte('0' + d)
+	}
+	return string(b)
 }
 
 // hasRepeatedDigits checks if all digits in the CNPJ are the same.

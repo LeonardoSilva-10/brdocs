@@ -94,7 +94,7 @@ func TestSerproClient_ConsultaCNPJ(t *testing.T) {
 					NI:              "34238864000168",
 					NomeEmpresarial: "SERVICO DE PROCESSAMENTO DE DADOS SERPRO",
 					SituacaoCadastral: SituacaoCadastral{
-						Codigo:    "1",
+						Codigo:    "2",
 						Descricao: "ATIVA",
 					},
 				})

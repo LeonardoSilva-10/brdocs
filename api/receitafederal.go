@@ -25,11 +25,15 @@ func newReceitaFederalClient(parent *Client) *receitaFederalClient {
 // Requires the CPF number and birth date (DD/MM/YYYY format).
 func (rf *receitaFederalClient) ConsultaCPF(ctx context.Context, cpf, birthDate string) (*CPFResult, error) {
 	// Sanitize CPF
-	cpf = strings.ReplaceAll(cpf, ".", "")
-	cpf = strings.ReplaceAll(cpf, "-", "")
+	cpf = sanitizeDocument(cpf)
 
 	if len(cpf) != 11 {
 		return nil, fmt.Errorf("receitafederal: invalid CPF length")
+	}
+
+	cacheKey := "receitafederal:" + cpf + ":" + birthDate
+	if cached := rf.parent.cacheGet(cacheKey); cached != nil {
+		return cached.(*CPFResult), nil
 	}
 
 	formData := url.Values{}
@@ -63,7 +67,13 @@ func (rf *receitaFederalClient) ConsultaCPF(ctx context.Context, cpf, birthDate 
 		return nil, fmt.Errorf("receitafederal: failed to read response: %w", err)
 	}
 
-	return parseCPFResponse(string(body), cpf)
+	result, err := parseCPFResponse(string(body), cpf)
+	if err != nil {
+		return nil, err
+	}
+
+	rf.parent.cacheSet(cacheKey, result)
+	return result, nil
 }
 
 // parseCPFResponse extracts CPF data from the HTML response.

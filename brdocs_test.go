@@ -44,7 +44,7 @@ func TestSanitizeCNPJ(t *testing.T) {
 }
 
 func TestCPFState(t *testing.T) {
-	// 52998224210 -> 9o digito = 2 -> "AC", "AM", "AP", "PA", "RO", "RR" 
+	// 52998224210 -> 9o digito = 2 -> "AC", "AM", "AP", "PA", "RO", "RR"
 	// The 9th digit of the CPF indicates the state, and for digit 2, it can correspond to multiple states.
 	assert.Contains(t, CPFState("52998224210"), "AM")
 	assert.Equal(t, []string(nil), CPFState("invalid")) // Invalid CPF should return nil
@@ -60,4 +60,16 @@ func TestCNPJBranchCode(t *testing.T) {
 	assert.Equal(t, "0001", CNPJBranchCode("11222333000181"))
 	assert.Equal(t, "0002", CNPJBranchCode("11222333000262"))
 	assert.Equal(t, "", CNPJBranchCode("invalid"))
+}
+
+func TestGenerateCPF(t *testing.T) {
+	g := GenerateCPF()
+	assert.Len(t, g, 11)
+	assert.True(t, IsValidCPF(g))
+}
+
+func TestGenerateCNPJ(t *testing.T) {
+	g := GenerateCNPJ()
+	assert.Len(t, g, 14)
+	assert.True(t, IsValidCNPJ(g))
 }

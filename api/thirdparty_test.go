@@ -12,11 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestThirdPartyClient_ConsultaCPFCPFCNPJ(t *testing.T) {
+func TestThirdPartyClient_ConsultaCPFCNPJ(t *testing.T) {
 	t.Run("returns error without API key", func(t *testing.T) {
 		client := NewClient()
 		tp := newThirdPartyClient(client)
-		_, err := tp.ConsultaCPFCPFCNPJ(context.Background(), "52998224725")
+		_, err := tp.ConsultaCPFCNPJ(context.Background(), "52998224725")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "API key is required")
 	})
@@ -26,9 +26,9 @@ func TestThirdPartyClient_ConsultaCPFCPFCNPJ(t *testing.T) {
 			assert.Contains(t, r.URL.Path, "52998224725")
 			assert.Contains(t, r.URL.Path, "test-api-key")
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{
-				"status": "OK",
-				"nome":   "JOÃO DA SILVA",
+			json.NewEncoder(w).Encode(CPFCNPJResult{
+				Status: "OK",
+				Nome:   "JOÃO DA SILVA",
 			})
 		}))
 		defer server.Close()
@@ -41,11 +41,33 @@ func TestThirdPartyClient_ConsultaCPFCPFCNPJ(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		result, err := client.ConsultaCPFCPFCNPJ(ctx, "529.982.247-25")
+		result, err := client.ConsultaCPFCNPJ(ctx, "529.982.247-25")
 		require.NoError(t, err)
-		m := result.(map[string]interface{})
-		assert.Equal(t, "OK", m["status"])
-		assert.Equal(t, "JOÃO DA SILVA", m["nome"])
+		assert.Equal(t, "OK", result.Status)
+		assert.Equal(t, "JOÃO DA SILVA", result.Nome)
+	})
+
+	t.Run("returns error on failed query", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(CPFCNPJResult{
+				Status:  "ERROR",
+				Message: "registro não encontrado",
+			})
+		}))
+		defer server.Close()
+
+		client := NewClient(
+			WithCPFCNPJAPIKey("test-api-key"),
+			WithBaseURL("cpfcnpj", server.URL),
+		)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		_, err := client.ConsultaCPFCNPJ(ctx, "529.982.247-25")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "query failed")
 	})
 }
 
