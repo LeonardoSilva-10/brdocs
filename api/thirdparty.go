@@ -29,7 +29,7 @@ func (tp *thirdPartyClient) ConsultaCPFCNPJ(ctx context.Context, document string
 
 	endpoint := fmt.Sprintf("%s/%s/%s", tp.parent.baseURLs["cpfcnpj"], document, tp.parent.cpfCnpjAPIKey)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("cpfcnpj: failed to create request: %w", err)
 	}
@@ -63,7 +63,7 @@ func (tp *thirdPartyClient) ConsultaCPFBrasil(ctx context.Context, cpf string) (
 
 	endpoint := fmt.Sprintf("%s/cpf/%s", tp.parent.baseURLs["cpfbrasil"], cpf)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("cpfbrasil: failed to create request: %w", err)
 	}

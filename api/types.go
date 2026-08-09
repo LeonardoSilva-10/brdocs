@@ -69,7 +69,7 @@ type CNPJResult struct {
 	OptanteSIMEI         bool              `json:"optante_simei"`
 	TipoEstabelecimento  string            `json:"tipo_estabelecimento"`
 	Orgao                string            `json:"orgao"`
-	EnteFederativo       string            `json:"ente_federativo"`
+	EnteFederativo       string            `json:"ente_federativo"` //nolint:misspell // termo em português do domínio da Receita Federal/Serpro
 	SituacaoEspecial     string            `json:"situacao_especial"`
 	DataSituacaoEspecial string            `json:"data_situacao_especial"`
 }

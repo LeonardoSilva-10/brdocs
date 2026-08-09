@@ -173,7 +173,7 @@ func BenchmarkValid(b *testing.B) {
 
 func BenchmarkParse(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		Parse("11.222.333/0001-81")
+		_, _ = Parse("11.222.333/0001-81")
 	}
 }
 

@@ -80,7 +80,9 @@ func (s *serproClient) getToken(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("serpro: token request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("serpro: token request returned status %d", resp.StatusCode)
@@ -116,7 +118,7 @@ func (s *serproClient) ConsultaCNPJ(ctx context.Context, cnpj string) (*CNPJResu
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
 		s.parent.baseURLs["serpro"]+"/consulta-cnpj-df/v2/basica/"+cnpj,
-		nil,
+		http.NoBody,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("serpro: failed to create request: %w", err)

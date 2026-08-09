@@ -131,7 +131,7 @@ func TestState(t *testing.T) {
 		{"52998224210", "AC"},
 		{"52998224130", "DF"},
 		{"52998224482", "AL"},
-		//{"invalid", []string(nil)}, // Invalid CPF should return nil
+		// {"invalid", []string(nil)}, // Invalid CPF should return nil
 	}
 
 	for _, tt := range tests {
@@ -178,7 +178,7 @@ func BenchmarkValid(b *testing.B) {
 
 func BenchmarkParse(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		Parse("529.982.247-25")
+		_, _ = Parse("529.982.247-25")
 	}
 }
 

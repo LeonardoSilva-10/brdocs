@@ -167,7 +167,9 @@ func (c *Client) doRequest(ctx context.Context, req *http.Request, result interf
 	if err != nil {
 		return fmt.Errorf("api: request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("api: unexpected status code: %d", resp.StatusCode)

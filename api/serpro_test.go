@@ -29,7 +29,7 @@ func TestSerproClient_GetToken(t *testing.T) {
 			assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
 
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(serproToken{
+			_ = json.NewEncoder(w).Encode(serproToken{
 				AccessToken: "test-token-123",
 				TokenType:   "Bearer",
 				ExpiresIn:   3600,
@@ -53,7 +53,7 @@ func TestSerproClient_GetToken(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			callCount++
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(serproToken{
+			_ = json.NewEncoder(w).Encode(serproToken{
 				AccessToken: "cached-token",
 				TokenType:   "Bearer",
 				ExpiresIn:   3600,
@@ -82,7 +82,7 @@ func TestSerproClient_ConsultaCNPJ(t *testing.T) {
 			switch r.URL.Path {
 			case "/token":
 				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(serproToken{
+				_ = json.NewEncoder(w).Encode(serproToken{
 					AccessToken: "test-token",
 					TokenType:   "Bearer",
 					ExpiresIn:   3600,
@@ -90,7 +90,7 @@ func TestSerproClient_ConsultaCNPJ(t *testing.T) {
 			case "/consulta-cnpj-df/v2/basica/34238864000168":
 				assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
 				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(CNPJResult{
+				_ = json.NewEncoder(w).Encode(CNPJResult{
 					NI:              "34238864000168",
 					NomeEmpresarial: "SERVICO DE PROCESSAMENTO DE DADOS SERPRO",
 					SituacaoCadastral: SituacaoCadastral{
@@ -123,7 +123,7 @@ func TestSerproClient_ConsultaCNPJ(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/token" {
 				w.Header().Set("Content-Type", "application/json")
-				json.NewEncoder(w).Encode(serproToken{
+				_ = json.NewEncoder(w).Encode(serproToken{
 					AccessToken: "test-token",
 					TokenType:   "Bearer",
 					ExpiresIn:   3600,

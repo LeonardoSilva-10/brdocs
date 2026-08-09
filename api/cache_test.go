@@ -30,11 +30,11 @@ func (s *serproCountingServer) handler() http.Handler {
 		case r.URL.Path == "/token":
 			s.token++
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(serproToken{AccessToken: "tok", TokenType: "Bearer", ExpiresIn: 3600})
+			_ = json.NewEncoder(w).Encode(serproToken{AccessToken: "tok", TokenType: "Bearer", ExpiresIn: 3600})
 		case strings.Contains(r.URL.Path, "/consulta-cnpj-df/"):
 			s.cnpj++
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(CNPJResult{NI: "34238864000168", NomeEmpresarial: "SERPRO TESTE"})
+			_ = json.NewEncoder(w).Encode(CNPJResult{NI: "34238864000168", NomeEmpresarial: "SERPRO TESTE"})
 		default:
 			s.other++
 			http.NotFound(w, r)

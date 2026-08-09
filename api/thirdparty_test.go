@@ -26,7 +26,7 @@ func TestThirdPartyClient_ConsultaCPFCNPJ(t *testing.T) {
 			assert.Contains(t, r.URL.Path, "52998224725")
 			assert.Contains(t, r.URL.Path, "test-api-key")
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(CPFCNPJResult{
+			_ = json.NewEncoder(w).Encode(CPFCNPJResult{
 				Status: "OK",
 				Nome:   "JOÃO DA SILVA",
 			})
@@ -50,7 +50,7 @@ func TestThirdPartyClient_ConsultaCPFCNPJ(t *testing.T) {
 	t.Run("returns error on failed query", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(CPFCNPJResult{
+			_ = json.NewEncoder(w).Encode(CPFCNPJResult{
 				Status:  "ERROR",
 				Message: "registro não encontrado",
 			})
@@ -85,7 +85,7 @@ func TestThirdPartyClient_ConsultaCPFBrasil(t *testing.T) {
 			assert.Equal(t, "/cpf/52998224725", r.URL.Path)
 			assert.Equal(t, "test-key", r.Header.Get("X-API-Key"))
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(struct {
+			_ = json.NewEncoder(w).Encode(struct {
 				Success bool `json:"success"`
 				Data    struct {
 					CPF  string `json:"CPF"`
@@ -128,7 +128,7 @@ func TestThirdPartyClient_ConsultaCPFBrasil(t *testing.T) {
 	t.Run("returns error on failed query", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(struct {
+			_ = json.NewEncoder(w).Encode(struct {
 				Success bool `json:"success"`
 			}{
 				Success: false,
