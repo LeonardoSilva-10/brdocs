@@ -99,8 +99,8 @@ func (s *serproClient) getToken(ctx context.Context) (string, error) {
 	return token.AccessToken, nil
 }
 
-// ConsultaCNPJ queries CNPJ data from Serpro/ConectaGov.
-func (s *serproClient) ConsultaCNPJ(ctx context.Context, cnpj string) (*CNPJResult, error) {
+// QueryCNPJ queries CNPJ data from Serpro/ConectaGov.
+func (s *serproClient) QueryCNPJ(ctx context.Context, cnpj string) (*CNPJResult, error) {
 	cnpj = sanitizeDocument(cnpj)
 	if len(cnpj) != 14 {
 		return nil, fmt.Errorf("serpro: invalid CNPJ length, expected 14 digits")
@@ -136,11 +136,11 @@ func (s *serproClient) ConsultaCNPJ(ctx context.Context, cnpj string) (*CNPJResu
 	return &result, nil
 }
 
-// ConsultaCNPJ is a convenience method on Client.
-func (c *Client) ConsultaCNPJ(ctx context.Context, cnpj string) (*CNPJResult, error) {
+// QueryCNPJ is a convenience method on Client.
+func (c *Client) QueryCNPJ(ctx context.Context, cnpj string) (*CNPJResult, error) {
 	sc := c.serpro
 	if sc == nil {
 		sc = newSerproClient(c)
 	}
-	return sc.ConsultaCNPJ(ctx, cnpj)
+	return sc.QueryCNPJ(ctx, cnpj)
 }

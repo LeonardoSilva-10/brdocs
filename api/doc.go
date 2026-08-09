@@ -12,5 +12,5 @@
 //	client := api.NewClient(
 //	    api.WithSerproCredentials("key", "secret"),
 //	)
-//	result, err := client.ConsultaCNPJ(ctx, "34238864000168")
+//	result, err := client.QueryCNPJ(ctx, "34238864000168")
 package api

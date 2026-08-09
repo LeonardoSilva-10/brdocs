@@ -80,7 +80,7 @@ func GenerateCNPJ() string {
 	return cnpj.Generate()
 }
 
-// CNPJIsHeadquarters checks if the CNPJ represents the headquarters (matriz).
+// CNPJIsHeadquarters checks if the CNPJ represents the headquarters.
 func CNPJIsHeadquarters(s string) bool {
 	return cnpj.IsHeadquarters(s)
 }

@@ -76,7 +76,7 @@ func TestSerproClient_GetToken(t *testing.T) {
 	})
 }
 
-func TestSerproClient_ConsultaCNPJ(t *testing.T) {
+func TestSerproClient_QueryCNPJ(t *testing.T) {
 	t.Run("successfully queries CNPJ", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
@@ -91,11 +91,11 @@ func TestSerproClient_ConsultaCNPJ(t *testing.T) {
 				assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
 				w.Header().Set("Content-Type", "application/json")
 				_ = json.NewEncoder(w).Encode(CNPJResult{
-					NI:              "34238864000168",
-					NomeEmpresarial: "SERVICO DE PROCESSAMENTO DE DADOS SERPRO",
-					SituacaoCadastral: SituacaoCadastral{
-						Codigo:    "2",
-						Descricao: "ATIVA",
+					Number:    "34238864000168",
+					LegalName: "SERVICO DE PROCESSAMENTO DE DADOS SERPRO",
+					RegistrationStatus: RegistrationStatus{
+						Code:        "2",
+						Description: "ATIVA",
 					},
 				})
 			default:
@@ -112,10 +112,10 @@ func TestSerproClient_ConsultaCNPJ(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		result, err := client.ConsultaCNPJ(ctx, "34.238.864/0001-68")
+		result, err := client.QueryCNPJ(ctx, "34.238.864/0001-68")
 		require.NoError(t, err)
-		assert.Equal(t, "34238864000168", result.NI)
-		assert.Equal(t, "SERVICO DE PROCESSAMENTO DE DADOS SERPRO", result.NomeEmpresarial)
+		assert.Equal(t, "34238864000168", result.Number)
+		assert.Equal(t, "SERVICO DE PROCESSAMENTO DE DADOS SERPRO", result.LegalName)
 		assert.True(t, result.IsActive())
 	})
 
@@ -142,7 +142,7 @@ func TestSerproClient_ConsultaCNPJ(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		_, err := client.ConsultaCNPJ(ctx, "00.000.000/0000-00")
+		_, err := client.QueryCNPJ(ctx, "00.000.000/0000-00")
 		assert.Error(t, err)
 	})
 
@@ -162,7 +162,7 @@ func TestSerproClient_ConsultaCNPJ(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
 		defer cancel()
 
-		_, err := client.ConsultaCNPJ(ctx, "34.238.864/0001-68")
+		_, err := client.QueryCNPJ(ctx, "34.238.864/0001-68")
 		assert.Error(t, err)
 	})
 }

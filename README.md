@@ -5,34 +5,35 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/LeonardoSilva-10/brdocs)](https://goreportcard.com/report/github.com/LeonardoSilva-10/brdocs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> Pacote Go para validação e consulta de CPF e CNPJ brasileiros.
+> Go package to validate and query Brazilian CPF and CNPJ numbers.
 
-## ✨ Funcionalidades
+## ✨ Features
 
-- ✅ **Validação matemática** de CPF e CNPJ (algoritmo oficial módulo 11)
-- 🔍 **Consulta via APIs** do governo brasileiro e serviços de terceiros
-- 🛡️ **Sanitização** automática (remove pontos, traços, barras)
-- 🎲 **Geração** de CPF e CNPJ válidos (`crypto/rand`)
-- 📦 **Sem dependências externas** para validação local
-- 🧪 **Testes unitários e E2E** com alta cobertura nos validadores (~90%)
-- ⚡ **Cache embutido** para consultas repetidas (`api.WithCacheTTL`)
-- 🌐 **Contexto nativo** (`context.Context`) em todas as chamadas de API
+- ✅ **Mathematical validation** of CPF and CNPJ (official mod-11 algorithm)
+- 🔍 **Queries through APIs** from the Brazilian government and third-party services
+- 🛡️ **Automatic sanitization** (removes dots, dashes, slashes)
+- 🎲 **Generation** of valid CPF and CNPJ (`crypto/rand`)
+- 📦 **No external dependencies** for local validation
+- 🧪 **Unit and E2E tests** with high validator coverage (~90%)
+- ⚡ **Built-in cache** for repeated queries (`api.WithCacheTTL`)
+- 🌐 **Native context support** (`context.Context`) in all API calls
 
-## 📦 Instalação
+## 📦 Installation
 
 ```bash
 go get github.com/LeonardoSilva-10/brdocs
 ```
 
-## 🚀 Uso Rápido
+## 🚀 Quick Start
 
-### Validação Local (sem internet)
+### Local validation (no internet)
 
 ```go
 package main
 
 import (
     "fmt"
+
     "github.com/LeonardoSilva-10/brdocs/cpf"
     "github.com/LeonardoSilva-10/brdocs/cnpj"
 )
@@ -40,8 +41,8 @@ import (
 func main() {
     // CPF
     fmt.Println(cpf.Valid("529.982.247-25")) // true
-    fmt.Println(cpf.Valid("111.111.111-11")) // false (digitos repetidos)
-    fmt.Println(cpf.Valid("123.456.789-09")) // false (digitos verificadores invalidos)
+    fmt.Println(cpf.Valid("111.111.111-11")) // false (repeated digits)
+    fmt.Println(cpf.Valid("123.456.789-09")) // false (invalid check digits)
 
     // CNPJ
     fmt.Println(cnpj.Valid("11.222.333/0001-81")) // true
@@ -49,7 +50,7 @@ func main() {
 }
 ```
 
-### Consulta via API
+### API query
 
 ```go
 package main
@@ -69,32 +70,32 @@ func main() {
 
     client := api.NewClient(
         api.WithSerproCredentials("consumerKey", "consumerSecret"),
-        api.WithCacheTTL(5*time.Minute), // cache resultados de consultas por 5 minutos
+        api.WithCacheTTL(5*time.Minute), // cache query results for 5 minutes
     )
 
-    // Consulta CNPJ na Receita Federal (Serpro)
-    result, err := client.ConsultaCNPJ(ctx, "34238864000168")
+    // Query a CNPJ through the Receita Federal (Serpro)
+    result, err := client.QueryCNPJ(ctx, "34238864000168")
     if err != nil {
         log.Fatal(err)
     }
-    fmt.Printf("Razão Social: %s\n", result.NomeEmpresarial)
-    fmt.Printf("Situação: %s\n", result.SituacaoCadastral.Descricao)
+    fmt.Printf("Legal Name: %s\n", result.LegalName)
+    fmt.Printf("Status: %s\n", result.RegistrationStatus.Description)
 
-    // Consulta CPF no serviço de terceiros cpfcnpj.com.br
-    cpfResult, err := client.ConsultaCPFCNPJ(ctx, "529.982.247-25")
+    // Query a CPF through the third-party service cpfcnpj.com.br
+    cpfResult, err := client.QueryCPFCNPJ(ctx, "529.982.247-25")
     if err != nil {
         log.Fatal(err)
     }
-    fmt.Printf("Nome: %s\n", cpfResult.Nome)
+    fmt.Printf("Name: %s\n", cpfResult.Name)
 }
 ```
 
-> 💡 **Cache**: Por padrão o cache de consultas está **desabilitado**. Habilite-o
-> com `api.WithCacheTTL(duration)`. Apenas respostas bem-sucedidas são
-> armazenadas, separadas por provedor e documento. O token OAuth do Serpro já é
-> reutilizado automaticamente entre chamadas do mesmo `Client`.
+> 💡 **Cache**: Result caching is **disabled** by default. Enable it with
+> `api.WithCacheTTL(duration)`. Only successful responses are cached, keyed by
+> provider and document. The Serpro OAuth token is automatically reused across
+> calls of the same `Client`.
 
-### Geração de documentos
+### Generating documents
 
 ```go
 package main
@@ -106,66 +107,71 @@ import (
 )
 
 func main() {
-    cpf := brdocs.GenerateCPF()   // ex.: "52998224806"
-    cnpj := brdocs.GenerateCNPJ() // ex.: "11222333000181"
+    cpf := brdocs.GenerateCPF()   // e.g.: "52998224806"
+    cnpj := brdocs.GenerateCNPJ() // e.g.: "11222333000181"
 
     fmt.Println(brdocs.IsValidCPF(cpf))  // true
     fmt.Println(brdocs.IsValidCNPJ(cnpj)) // true
 }
 ```
 
-## 📋 APIs Suportadas
+## 📋 Supported APIs
 
-| API | Tipo | Documento | Requer Credenciais | Gratuita |
-|-----|------|-----------|-------------------|----------|
-| **Serpro/ConectaGov** | Oficial | CNPJ | ✅ OAuth2 (Consumer Key/Secret) | ❌ Paga |
-| **Receita Federal** | Oficial | CPF | ❌ | ✅ Gratuita (web scraping) |
-| **cpfcnpj.com.br** | Terceiro | CPF/CNPJ | ✅ API Key | ❌ Paga |
-| **cpf-brasil.org** | Terceiro | CPF | ✅ API Key | ❌ Paga (com trial) |
+| API | Type | Document | Requires credentials | Free |
+|-----|------|----------|----------------------|------|
+| **Serpro/ConectaGov** | Official | CNPJ | ✅ OAuth2 (Consumer Key/Secret) | ❌ Paid |
+| **Receita Federal** | Official | CPF | ❌ | ✅ Free (web scraping) |
+| **cpfcnpj.com.br** | Third-party | CPF/CNPJ | ✅ API Key | ❌ Paid |
+| **cpf-brasil.org** | Third-party | CPF | ✅ API Key | ❌ Paid (with trial) |
 
-> ⚠️ **Nota sobre CPF**: A Receita Federal não oferece uma API REST pública oficial para consulta de CPF. O pacote implementa consulta via parsing da página pública de situação cadastral.
+> ⚠️ **About CPF**: The Receita Federal does not offer a public official REST
+> API to query CPF numbers. This package implements the query by parsing the
+> public registration status page (web scraping).
 
-## 🏗️ Estrutura do Projeto
+## 🏗️ Project Structure
 
 ```
 brdocs/
-├── cpf/                  # Validação e geração de CPF
-├── cnpj/                 # Validação e geração de CNPJ
-├── api/                  # Cliente de APIs externas
-│   ├── client.go         # Cliente, opções e cache
-│   ├── serpro.go         # Integração Serpro/ConectaGov (CNPJ)
-│   ├── receitafederal.go # Consulta pública Receita Federal (CPF)
-│   └── thirdparty.go     # cpfcnpj.com.br e cpf-brasil.org
-├── brdocs.go             # Re-exports de conveniência
-├── e2e/                  # Testes end-to-end
+├── cpf/                  # CPF validation and generation
+├── cnpj/                 # CNPJ validation and generation
+├── api/                  # External API client
+│   ├── client.go         # Client, options and cache
+│   ├── serpro.go         # Serpro/ConectaGov integration (CNPJ)
+│   ├── receitafederal.go # Receita Federal public query (CPF)
+│   └── thirdparty.go     # cpfcnpj.com.br and cpf-brasil.org
+├── brdocs.go             # Convenience re-exports
+├── e2e/                  # End-to-end tests
 └── .github/workflows/    # CI/CD
 ```
 
-## 🧪 Testes
+## 🧪 Testing
 
 ```bash
-# Todos os testes
+# All tests
 go test ./...
 
-# Com cobertura
+# With coverage
 go test -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out -o coverage.html
 
-# Testes E2E (requer variáveis de ambiente)
+# E2E tests (requires environment variables)
 SERPRO_CONSUMER_KEY=xxx SERPRO_CONSUMER_SECRET=xxx go test ./e2e/... -run TestSerproIntegration
 CPFCNPJ_API_KEY=xxx go test ./e2e/... -run TestCPFCNPJAPIIntegration
 
-# Consulta pública da Receita Federal (pode quebrar por CAPTCHA/mudanças na página)
+# Receita Federal public query (may break due to CAPTCHA/page changes)
 RUN_RF_INTEGRATION=1 go test ./e2e/... -run TestReceitaFederalIntegration
 
 # Benchmarks
 go test -bench=. -benchmem ./...
 ```
 
-## 📄 Licença
+## 📄 License
 
-MIT License - veja [LICENSE](LICENSE) para detalhes.
+MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-**⚠️ Aviso Legal**: Este pacote é uma ferramenta de desenvolvimento. O uso de APIs oficiais do governo brasileiro está sujeito aos termos de serviço da Receita Federal e Serpro. Dados de CPF são protegidos pela LGPD.
+**⚠️ Legal Notice**: This package is a development tool. Use of the official
+Brazilian government APIs is subject to the Receita Federal and Serpro terms of
+service. CPF data is protected by the LGPD (Brazilian General Data Protection
+Law).

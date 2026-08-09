@@ -34,7 +34,7 @@ func (s *serproCountingServer) handler() http.Handler {
 		case strings.Contains(r.URL.Path, "/consulta-cnpj-df/"):
 			s.cnpj++
 			w.Header().Set("Content-Type", "application/json")
-			_ = json.NewEncoder(w).Encode(CNPJResult{NI: "34238864000168", NomeEmpresarial: "SERPRO TESTE"})
+			_ = json.NewEncoder(w).Encode(CNPJResult{Number: "34238864000168", LegalName: "SERPRO TESTE"})
 		default:
 			s.other++
 			http.NotFound(w, r)
@@ -62,7 +62,7 @@ func TestClient_CacheDisabledByDefault(t *testing.T) {
 	ctx := context.Background()
 
 	for i := 0; i < 2; i++ {
-		_, err := client.ConsultaCNPJ(ctx, "34.238.864/0001-68")
+		_, err := client.QueryCNPJ(ctx, "34.238.864/0001-68")
 		require.NoError(t, err)
 	}
 
@@ -81,7 +81,7 @@ func TestClient_CacheEnabled(t *testing.T) {
 	ctx := context.Background()
 
 	for i := 0; i < 2; i++ {
-		_, err := client.ConsultaCNPJ(ctx, "34.238.864/0001-68")
+		_, err := client.QueryCNPJ(ctx, "34.238.864/0001-68")
 		require.NoError(t, err)
 	}
 
@@ -100,11 +100,11 @@ func TestClient_CacheExpires(t *testing.T) {
 	ctx := context.Background()
 
 	for i := 0; i < 2; i++ {
-		_, err := client.ConsultaCNPJ(ctx, "34.238.864/0001-68")
+		_, err := client.QueryCNPJ(ctx, "34.238.864/0001-68")
 		require.NoError(t, err)
 	}
 	time.Sleep(250 * time.Millisecond)
-	_, err := client.ConsultaCNPJ(ctx, "34.238.864/0001-68")
+	_, err := client.QueryCNPJ(ctx, "34.238.864/0001-68")
 	require.NoError(t, err)
 
 	token, cnpj, other := srv.counts()
@@ -121,9 +121,9 @@ func TestClient_CacheDistinctDocuments(t *testing.T) {
 	client := clientForSerpro(server, WithCacheTTL(time.Minute))
 	ctx := context.Background()
 
-	_, err := client.ConsultaCNPJ(ctx, "34.238.864/0001-68")
+	_, err := client.QueryCNPJ(ctx, "34.238.864/0001-68")
 	require.NoError(t, err)
-	_, err = client.ConsultaCNPJ(ctx, "11.222.333/0001-81")
+	_, err = client.QueryCNPJ(ctx, "11.222.333/0001-81")
 	require.NoError(t, err, "a different document is a different cache key and must hit the server")
 
 	token, cnpj, other := srv.counts()

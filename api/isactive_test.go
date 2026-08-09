@@ -13,18 +13,18 @@ func TestCNPJResult_IsActive(t *testing.T) {
 		desc string
 		want bool
 	}{
-		{"ativa por codigo", "2", "ATIVA", true},
-		{"ativa por descricao", "", "ATIVA", true},
-		{"ativa por descricao minúscula", "", "Situação cadastral ativa", true},
-		{"nula", "1", "NULA", false},
-		{"suspensa", "3", "SUSPENSA", false},
-		{"inapta", "4", "INAPTA", false},
-		{"baixada", "8", "BAIXADA", false},
-		{"sem dados", "", "", false},
+		{"active by code", "2", "ATIVA", true},
+		{"active by description", "", "ATIVA", true},
+		{"active by lowercase description", "", "registration status ativa", true},
+		{"null", "1", "NULA", false},
+		{"suspended", "3", "SUSPENSA", false},
+		{"inapt", "4", "INAPTA", false},
+		{"deregistered", "8", "BAIXADA", false},
+		{"no data", "", "", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &CNPJResult{SituacaoCadastral: SituacaoCadastral{Codigo: tt.code, Descricao: tt.desc}}
+			r := &CNPJResult{RegistrationStatus: RegistrationStatus{Code: tt.code, Description: tt.desc}}
 			assert.Equal(t, tt.want, r.IsActive())
 		})
 	}

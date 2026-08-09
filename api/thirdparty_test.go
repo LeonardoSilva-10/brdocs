@@ -12,11 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestThirdPartyClient_ConsultaCPFCNPJ(t *testing.T) {
+func TestThirdPartyClient_QueryCPFCNPJ(t *testing.T) {
 	t.Run("returns error without API key", func(t *testing.T) {
 		client := NewClient()
 		tp := newThirdPartyClient(client)
-		_, err := tp.ConsultaCPFCNPJ(context.Background(), "52998224725")
+		_, err := tp.QueryCPFCNPJ(context.Background(), "52998224725")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "API key is required")
 	})
@@ -28,7 +28,7 @@ func TestThirdPartyClient_ConsultaCPFCNPJ(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(CPFCNPJResult{
 				Status: "OK",
-				Nome:   "JOÃO DA SILVA",
+				Name:   "JOÃO DA SILVA",
 			})
 		}))
 		defer server.Close()
@@ -41,10 +41,10 @@ func TestThirdPartyClient_ConsultaCPFCNPJ(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		result, err := client.ConsultaCPFCNPJ(ctx, "529.982.247-25")
+		result, err := client.QueryCPFCNPJ(ctx, "529.982.247-25")
 		require.NoError(t, err)
 		assert.Equal(t, "OK", result.Status)
-		assert.Equal(t, "JOÃO DA SILVA", result.Nome)
+		assert.Equal(t, "JOÃO DA SILVA", result.Name)
 	})
 
 	t.Run("returns error on failed query", func(t *testing.T) {
@@ -65,17 +65,17 @@ func TestThirdPartyClient_ConsultaCPFCNPJ(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		_, err := client.ConsultaCPFCNPJ(ctx, "529.982.247-25")
+		_, err := client.QueryCPFCNPJ(ctx, "529.982.247-25")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "query failed")
 	})
 }
 
-func TestThirdPartyClient_ConsultaCPFBrasil(t *testing.T) {
+func TestThirdPartyClient_QueryCPFBrasil(t *testing.T) {
 	t.Run("returns error without API key", func(t *testing.T) {
 		client := NewClient()
 		tp := newThirdPartyClient(client)
-		_, err := tp.ConsultaCPFBrasil(context.Background(), "52998224725")
+		_, err := tp.QueryCPFBrasil(context.Background(), "52998224725")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "API key is required")
 	})
@@ -89,7 +89,7 @@ func TestThirdPartyClient_ConsultaCPFBrasil(t *testing.T) {
 				Success bool `json:"success"`
 				Data    struct {
 					CPF  string `json:"CPF"`
-					Nome string `json:"NOME"`
+					Name string `json:"NOME"`
 					Sexo string `json:"SEXO"`
 					Nasc string `json:"NASC"`
 				} `json:"data"`
@@ -97,12 +97,12 @@ func TestThirdPartyClient_ConsultaCPFBrasil(t *testing.T) {
 				Success: true,
 				Data: struct {
 					CPF  string `json:"CPF"`
-					Nome string `json:"NOME"`
+					Name string `json:"NOME"`
 					Sexo string `json:"SEXO"`
 					Nasc string `json:"NASC"`
 				}{
 					CPF:  "52998224725",
-					Nome: "JOÃO DA SILVA",
+					Name: "JOÃO DA SILVA",
 					Sexo: "M",
 					Nasc: "1990-01-01",
 				},
@@ -118,11 +118,11 @@ func TestThirdPartyClient_ConsultaCPFBrasil(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		result, err := client.ConsultaCPFBrasil(ctx, "529.982.247-25")
+		result, err := client.QueryCPFBrasil(ctx, "529.982.247-25")
 		require.NoError(t, err)
 		assert.Equal(t, "52998224725", result.CPF)
-		assert.Equal(t, "JOÃO DA SILVA", result.Nome)
-		assert.Equal(t, "1990-01-01", result.DataNascimento)
+		assert.Equal(t, "JOÃO DA SILVA", result.Name)
+		assert.Equal(t, "1990-01-01", result.BirthDate)
 	})
 
 	t.Run("returns error on failed query", func(t *testing.T) {
@@ -144,7 +144,7 @@ func TestThirdPartyClient_ConsultaCPFBrasil(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		_, err := client.ConsultaCPFBrasil(ctx, "529.982.247-25")
+		_, err := client.QueryCPFBrasil(ctx, "529.982.247-25")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "query failed")
 	})

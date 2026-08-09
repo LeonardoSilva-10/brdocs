@@ -81,8 +81,8 @@ func Mask(cnpj string) string {
 	return "**.*" + clean[4:5] + ".***/****-" + clean[12:14]
 }
 
-// BranchCode returns the branch code (filial) from the CNPJ.
-// The branch code is the 9th to 12th digits. "0001" indicates the headquarters (matriz).
+// BranchCode returns the branch code from the CNPJ.
+// The branch code is positions 9 to 12. "0001" indicates the headquarters.
 func BranchCode(cnpj string) string {
 	clean, err := Parse(cnpj)
 	if err != nil {
@@ -91,7 +91,7 @@ func BranchCode(cnpj string) string {
 	return clean[8:12]
 }
 
-// IsHeadquarters checks if the CNPJ represents the headquarters (matriz).
+// IsHeadquarters checks if the CNPJ represents the headquarters.
 func IsHeadquarters(cnpj string) bool {
 	return BranchCode(cnpj) == "0001"
 }

@@ -22,13 +22,13 @@ func ExampleFormat() {
 	//
 }
 
-func ExampleBranchCode_matriz() {
+func ExampleBranchCode_headquarters() {
 	fmt.Println(cnpj.BranchCode("11222333000181"))
 	// Output:
 	// 0001
 }
 
-func ExampleBranchCode_filial() {
+func ExampleBranchCode_branch() {
 	fmt.Println(cnpj.BranchCode("11222333000262"))
 	// Output:
 	// 0002

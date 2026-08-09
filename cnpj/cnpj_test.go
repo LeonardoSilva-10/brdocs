@@ -113,8 +113,8 @@ func TestMask(t *testing.T) {
 }
 
 func TestBranchCode(t *testing.T) {
-	// 11222333000181 -> matriz (0001)
-	// 11222333000262 -> filial (0002), CNPJ valido
+	// 11222333000181 -> headquarters (0001)
+	// 11222333000262 -> branch (0002), valid CNPJ
 	tests := []struct {
 		input    string
 		expected string

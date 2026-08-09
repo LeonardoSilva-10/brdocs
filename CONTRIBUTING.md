@@ -1,74 +1,74 @@
 # Contributing to brdocs
 
-Obrigado pelo interesse em contribuir!
+Thanks for your interest in contributing!
 
-## Como Contribuir
+## How to Contribute
 
-### 1. Fork e Clone
+### 1. Fork and Clone
 
 ```bash
 git clone https://github.com/LeonardoSilva-10/brdocs.git
 cd brdocs
 ```
 
-### 2. Instale as Dependências
+### 2. Install Dependencies
 
 ```bash
 make deps
 make install-tools
 ```
 
-### 3. Crie uma Branch
+### 3. Create a Branch
 
 ```bash
-git checkout -b feature/minha-feature
+git checkout -b feature/my-feature
 ```
 
-### 4. Desenvolva e Teste
+### 4. Develop and Test
 
 ```bash
-# Execute os testes
+# Run the tests
 make test
 
-# Execute o linter
+# Run the linter
 make lint
 
-# Execute os benchmarks
+# Run the benchmarks
 make bench
 ```
 
-### 5. Commit e Push
+### 5. Commit and Push
 
 ```bash
 git add .
-git commit -m "feat: descrição da feature"
-git push origin feature/minha-feature
+git commit -m "feat: describe the feature"
+git push origin feature/my-feature
 ```
 
-### 6. Abra um Pull Request
+### 6. Open a Pull Request
 
-## Padrões de Código
+## Code Standards
 
-- Siga as convenções do [Effective Go](https://go.dev/doc/effective_go)
-- Documente todas as funções e tipos exportados
-- Mantenha a cobertura de testes acima de 80%
-- Use `gofmt` para formatação
+- Follow the conventions of [Effective Go](https://go.dev/doc/effective_go)
+- Document every exported function and type
+- Keep test coverage above 80%
+- Use `gofmt` for formatting
 
-## Testes
+## Tests
 
-### Testes Unitários
+### Unit Tests
 
 ```bash
 go test ./...
 ```
 
-### Testes E2E
+### E2E Tests
 
 ```bash
-# Apenas validação local
+# Local validation only
 make e2e
 
-# Com integração Serpro (requer credenciais)
+# With Serpro integration (requires credentials)
 SERPRO_CONSUMER_KEY=xxx SERPRO_CONSUMER_SECRET=xxx make e2e-serpro
 ```
 
@@ -78,14 +78,14 @@ SERPRO_CONSUMER_KEY=xxx SERPRO_CONSUMER_SECRET=xxx make e2e-serpro
 make bench
 ```
 
-## Reportando Bugs
+## Reporting Bugs
 
-Use as [Issues do GitHub](https://github.com/LeonardoSilva-10/brdocs/issues) com:
-- Descrição clara do problema
-- Passos para reproduzir
-- Versão do Go
-- Saída do erro
+Use the [GitHub Issues](https://github.com/LeonardoSilva-10/brdocs/issues) with:
+- A clear description of the problem
+- Steps to reproduce
+- The Go version
+- The error output
 
-## Licença
+## License
 
-Ao contribuir, você concorda que suas contribuições serão licenciadas sob a MIT License.
+By contributing, you agree that your contributions will be licensed under the MIT License.

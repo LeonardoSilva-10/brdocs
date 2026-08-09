@@ -8,7 +8,7 @@ import (
 	"github.com/LeonardoSilva-10/brdocs/api"
 )
 
-func ExampleClient_ConsultaCNPJ() {
+func ExampleClient_QueryCNPJ() {
 	client := api.NewClient(
 		api.WithSerproCredentials("consumerKey", "consumerSecret"),
 	)

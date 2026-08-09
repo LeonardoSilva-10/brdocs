@@ -15,8 +15,8 @@ func newThirdPartyClient(parent *Client) *thirdPartyClient {
 	return &thirdPartyClient{parent: parent}
 }
 
-// ConsultaCPFCNPJ queries CPF or CNPJ from cpfcnpj.com.br.
-func (tp *thirdPartyClient) ConsultaCPFCNPJ(ctx context.Context, document string) (*CPFCNPJResult, error) {
+// QueryCPFCNPJ queries CPF or CNPJ from cpfcnpj.com.br.
+func (tp *thirdPartyClient) QueryCPFCNPJ(ctx context.Context, document string) (*CPFCNPJResult, error) {
 	if tp.parent.cpfCnpjAPIKey == "" {
 		return nil, fmt.Errorf("cpfcnpj: API key is required")
 	}
@@ -49,8 +49,8 @@ func (tp *thirdPartyClient) ConsultaCPFCNPJ(ctx context.Context, document string
 	return &result, nil
 }
 
-// ConsultaCPFBrasil queries CPF from cpf-brasil.org.
-func (tp *thirdPartyClient) ConsultaCPFBrasil(ctx context.Context, cpf string) (*CPFResult, error) {
+// QueryCPFBrasil queries CPF from cpf-brasil.org.
+func (tp *thirdPartyClient) QueryCPFBrasil(ctx context.Context, cpf string) (*CPFResult, error) {
 	if tp.parent.cpfBrasilAPIKey == "" {
 		return nil, fmt.Errorf("cpfbrasil: API key is required")
 	}
@@ -75,7 +75,7 @@ func (tp *thirdPartyClient) ConsultaCPFBrasil(ctx context.Context, cpf string) (
 		Success bool `json:"success"`
 		Data    struct {
 			CPF  string `json:"CPF"`
-			Nome string `json:"NOME"`
+			Name string `json:"NOME"`
 			Sexo string `json:"SEXO"`
 			Nasc string `json:"NASC"`
 		} `json:"data"`
@@ -90,22 +90,22 @@ func (tp *thirdPartyClient) ConsultaCPFBrasil(ctx context.Context, cpf string) (
 	}
 
 	result := &CPFResult{
-		CPF:            response.Data.CPF,
-		Nome:           response.Data.Nome,
-		DataNascimento: response.Data.Nasc,
+		CPF:       response.Data.CPF,
+		Name:      response.Data.Name,
+		BirthDate: response.Data.Nasc,
 	}
 	tp.parent.cacheSet(cacheKey, result)
 	return result, nil
 }
 
-// ConsultaCPFCNPJ is a convenience method on Client.
-func (c *Client) ConsultaCPFCNPJ(ctx context.Context, document string) (*CPFCNPJResult, error) {
+// QueryCPFCNPJ is a convenience method on Client.
+func (c *Client) QueryCPFCNPJ(ctx context.Context, document string) (*CPFCNPJResult, error) {
 	tp := newThirdPartyClient(c)
-	return tp.ConsultaCPFCNPJ(ctx, document)
+	return tp.QueryCPFCNPJ(ctx, document)
 }
 
-// ConsultaCPFBrasil is a convenience method on Client.
-func (c *Client) ConsultaCPFBrasil(ctx context.Context, cpf string) (*CPFResult, error) {
+// QueryCPFBrasil is a convenience method on Client.
+func (c *Client) QueryCPFBrasil(ctx context.Context, cpf string) (*CPFResult, error) {
 	tp := newThirdPartyClient(c)
-	return tp.ConsultaCPFBrasil(ctx, cpf)
+	return tp.QueryCPFBrasil(ctx, cpf)
 }

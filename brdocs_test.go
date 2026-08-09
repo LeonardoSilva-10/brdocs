@@ -44,7 +44,7 @@ func TestSanitizeCNPJ(t *testing.T) {
 }
 
 func TestCPFState(t *testing.T) {
-	// 52998224210 -> 9o digito = 2 -> "AC", "AM", "AP", "PA", "RO", "RR"
+	// 52998224210 -> 9th digit = 2 -> "AC", "AM", "AP", "PA", "RO", "RR"
 	// The 9th digit of the CPF indicates the state, and for digit 2, it can correspond to multiple states.
 	assert.Contains(t, CPFState("52998224210"), "AM")
 	assert.Equal(t, []string(nil), CPFState("invalid")) // Invalid CPF should return nil

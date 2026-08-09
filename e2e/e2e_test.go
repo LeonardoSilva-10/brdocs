@@ -18,7 +18,7 @@ func TestLocalValidation(t *testing.T) {
 	t.Run("CPF validation", func(t *testing.T) {
 		assert.True(t, cpf.Valid("529.982.247-25"))
 		assert.False(t, cpf.Valid("111.111.111-11"))
-		assert.False(t, cpf.Valid("123.456.789-01")) // DV correto eh 09
+		assert.False(t, cpf.Valid("123.456.789-01")) // correct check digit is 09
 		assert.False(t, cpf.Valid("invalid"))
 		assert.False(t, cpf.Valid(""))
 	})
@@ -72,10 +72,10 @@ func TestSerproIntegration(t *testing.T) {
 	defer cancel()
 
 	// Test with a known valid CNPJ (Serpro itself)
-	result, err := client.ConsultaCNPJ(ctx, "34.238.864/0001-68")
+	result, err := client.QueryCNPJ(ctx, "34.238.864/0001-68")
 	require.NoError(t, err)
-	assert.NotEmpty(t, result.NomeEmpresarial)
-	assert.Equal(t, "34238864000168", result.NI)
+	assert.NotEmpty(t, result.LegalName)
+	assert.Equal(t, "34238864000168", result.Number)
 }
 
 // TestCPFCNPJAPIIntegration tests the cpfcnpj.com.br API integration.
@@ -94,7 +94,7 @@ func TestCPFCNPJAPIIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	result, err := client.ConsultaCPFCNPJ(ctx, "529.982.247-25")
+	result, err := client.QueryCPFCNPJ(ctx, "529.982.247-25")
 	require.NoError(t, err)
 	assert.NotNil(t, result)
 }
@@ -115,7 +115,7 @@ func TestReceitaFederalIntegration(t *testing.T) {
 
 	// Use a known test CPF with a test birth date
 	// Note: This will likely fail in practice due to CAPTCHA
-	_, err := client.ConsultaCPF(ctx, "529.982.247-25", "01/01/1990")
+	_, err := client.QueryCPF(ctx, "529.982.247-25", "01/01/1990")
 	// We expect this to potentially fail due to CAPTCHA or page changes
 	assert.Error(t, err)
 }

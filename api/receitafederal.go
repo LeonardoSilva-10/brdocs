@@ -21,9 +21,9 @@ func newReceitaFederalClient(parent *Client) *receitaFederalClient {
 	return &receitaFederalClient{parent: parent}
 }
 
-// ConsultaCPF queries CPF data from the public Receita Federal website.
+// QueryCPF queries CPF data from the public Receita Federal website.
 // Requires the CPF number and birth date (DD/MM/YYYY format).
-func (rf *receitaFederalClient) ConsultaCPF(ctx context.Context, cpf, birthDate string) (*CPFResult, error) {
+func (rf *receitaFederalClient) QueryCPF(ctx context.Context, cpf, birthDate string) (*CPFResult, error) {
 	// Sanitize CPF
 	cpf = sanitizeDocument(cpf)
 
@@ -85,37 +85,37 @@ func parseCPFResponse(html, cpf string) (*CPFResult, error) {
 	// Extract name
 	nameRe := regexp.MustCompile(`<span[^>]*class="[^"]*nome[^"]*"[^>]*>([^<]+)</span>`)
 	if matches := nameRe.FindStringSubmatch(html); len(matches) > 1 {
-		result.Nome = strings.TrimSpace(matches[1])
+		result.Name = strings.TrimSpace(matches[1])
 	}
 
-	// Extract situacao cadastral
-	situacaoRe := regexp.MustCompile(`Situação Cadastral[^>]*>\s*<[^>]*>([^<]+)</`)
-	if matches := situacaoRe.FindStringSubmatch(html); len(matches) > 1 {
-		result.SituacaoCadastral = strings.TrimSpace(matches[1])
+	// Extract registration status
+	statusRe := regexp.MustCompile(`Situação Cadastral[^>]*>\s*<[^>]*>([^<]+)</`)
+	if matches := statusRe.FindStringSubmatch(html); len(matches) > 1 {
+		result.RegistrationStatus = strings.TrimSpace(matches[1])
 	}
 
 	// Alternative patterns for different page versions
-	if result.SituacaoCadastral == "" {
-		situacaoRe2 := regexp.MustCompile(`SITUAÇÃO CADASTRAL[^>]*>\s*<[^>]*>([^<]+)</`)
-		if matches := situacaoRe2.FindStringSubmatch(html); len(matches) > 1 {
-			result.SituacaoCadastral = strings.TrimSpace(matches[1])
+	if result.RegistrationStatus == "" {
+		statusRe2 := regexp.MustCompile(`SITUAÇÃO CADASTRAL[^>]*>\s*<[^>]*>([^<]+)</`)
+		if matches := statusRe2.FindStringSubmatch(html); len(matches) > 1 {
+			result.RegistrationStatus = strings.TrimSpace(matches[1])
 		}
 	}
 
-	// Extract data de inscricao
+	// Extract registration date
 	dataRe := regexp.MustCompile(`Data de Inscrição[^>]*>\s*<[^>]*>([^<]+)</`)
 	if matches := dataRe.FindStringSubmatch(html); len(matches) > 1 {
-		result.DataInscricao = strings.TrimSpace(matches[1])
+		result.RegistrationDate = strings.TrimSpace(matches[1])
 	}
 
-	// Extract digito verificador
+	// Extract check digit
 	dvRe := regexp.MustCompile(`Dígito Verificador[^>]*>\s*<[^>]*>([^<]+)</`)
 	if matches := dvRe.FindStringSubmatch(html); len(matches) > 1 {
-		result.DigitoVerificador = strings.TrimSpace(matches[1])
+		result.CheckDigit = strings.TrimSpace(matches[1])
 	}
 
 	// If we couldn't extract any meaningful data, the CPF might be invalid or the page changed
-	if result.Nome == "" && result.SituacaoCadastral == "" {
+	if result.Name == "" && result.RegistrationStatus == "" {
 		// Check for error messages
 		errorRe := regexp.MustCompile(`erro|inválido|não encontrado|não existe`)
 		if errorRe.MatchString(strings.ToLower(html)) {
@@ -124,12 +124,12 @@ func parseCPFResponse(html, cpf string) (*CPFResult, error) {
 		return nil, fmt.Errorf("receitafederal: unable to parse response, page structure may have changed")
 	}
 
-	result.ConsultaDataHora = time.Now()
+	result.QueryTimestamp = time.Now()
 	return result, nil
 }
 
-// ConsultaCPF is a convenience method on Client.
-func (c *Client) ConsultaCPF(ctx context.Context, cpf, birthDate string) (*CPFResult, error) {
+// QueryCPF is a convenience method on Client.
+func (c *Client) QueryCPF(ctx context.Context, cpf, birthDate string) (*CPFResult, error) {
 	rf := newReceitaFederalClient(c)
-	return rf.ConsultaCPF(ctx, cpf, birthDate)
+	return rf.QueryCPF(ctx, cpf, birthDate)
 }

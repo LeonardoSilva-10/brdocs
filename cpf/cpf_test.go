@@ -27,7 +27,7 @@ func TestValid(t *testing.T) {
 		{"empty", "", false},
 		{"invalid check digit 1", "529.982.247-26", false},
 		{"invalid check digit 2", "529.982.247-24", false},
-		{"invalid dv wrong", "123.456.789-01", false}, // DV correto eh 09
+		{"invalid dv wrong", "123.456.789-01", false}, // correct check digit is 09
 		{"valid with extra chars", "CPF: 529.982.247-25", true},
 	}
 
@@ -120,10 +120,10 @@ func TestMask(t *testing.T) {
 }
 
 func TestState(t *testing.T) {
-	// CPFs validos com digito de UF conhecido no indice 8:
-	// 52998224210 -> 9o digito = 2 -> "AC", "AM", "AP", "PA", "RO", "RR"
-	// 52998224130 -> 9o digito = 1 -> "DF", "GO", "MS", "MT", "TO"
-	// 52998224482 -> 9o digito = 4 -> "AL", "PB", "PE", "RN"
+	// Valid CPFs with a known state digit at index 8:
+	// 52998224210 -> 9th digit = 2 -> "AC", "AM", "AP", "PA", "RO", "RR"
+	// 52998224130 -> 9th digit = 1 -> "DF", "GO", "MS", "MT", "TO"
+	// 52998224482 -> 9th digit = 4 -> "AL", "PB", "PE", "RN"
 	tests := []struct {
 		cpf      string
 		expected string

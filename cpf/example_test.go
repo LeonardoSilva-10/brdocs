@@ -29,7 +29,7 @@ func ExampleMask() {
 }
 
 func ExampleState() {
-	// CPF 52998224806 -> 9o digito = 8 -> SP
+	// CPF 52998224806 -> 9th digit = 8 -> SP
 	fmt.Println(cpf.State("52998224806"))
 	// Output:
 	// [SP]

@@ -1,27 +1,30 @@
 # Changelog
 
-Todas as mudanças notáveis deste projeto serão documentadas aqui.
+All notable changes to this project will be documented in this file.
 
-O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
-e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
 ### Added
-- Geração aleatória de CPF e CNPJ válidos (`cpf.Generate`, `cnpj.Generate`, `brdocs.GenerateCPF`/`GenerateCNPJ`)
-- Cache de consultas nas APIs via `api.WithCacheTTL`
-- Resultado tipado para a API cpfcnpj.com.br (`api.CPFCNPJResult`) e método `Client.ConsultaCPFCNPJ`
+- Random generation of valid CPF and CNPJ numbers (`cpf.Generate`, `cnpj.Generate`, `brdocs.GenerateCPF`/`GenerateCNPJ`)
+- Query result caching via `api.WithCacheTTL`
+- Typed result for the cpfcnpj.com.br API (`api.CPFCNPJResult`) and the `Client.QueryCPFCNPJ` method
+
+### Changed
+- **Breaking:** the `api` package public identifiers were translated to English (`Client.ConsultaCNPJ` → `QueryCNPJ`, `SituacaoCadastral` → `RegistrationStatus`, `Codigo` → `Code`, etc.). JSON tags were kept unchanged to preserve compatibility with the upstream providers.
 
 ### Fixed
-- Exemplo `ExampleState` usava CPF inválido e derrubava `go test ./...`
-- `CNPJResult.IsActive` passou a considerar apenas situação ATIVA (código 2); códigos 1 (NULA), 3 (SUSPENSA), 4 (INAPTA) e 8 (BAIXADA) agora retornam `false`
-- Token OAuth do Serpro agora é reutilizado entre chamadas do mesmo `Client`
-- Removidos os sentinelas mortos `ErrInvalidDigits` dos pacotes `cpf` e `cnpj`
+- `ExampleState` used an invalid CPF and broke `go test ./...`
+- `CNPJResult.IsActive` now only considers ATIVA (code 2); codes 1 (NULA), 3 (SUSPENSA), 4 (INAPTA), and 8 (BAIXADA) now return `false`
+- The Serpro OAuth token is now reused across calls of the same `Client`
+- Removed the dead `ErrInvalidDigits` sentinels from the `cpf` and `cnpj` packages
 
 ### Removed
-- Pacote interno `internal/httpclient` (código morto, não utilizado pelo `api`)
+- The internal `internal/httpclient` package (dead code, not used by `api`)
 
 ## [1.0.0] - 2026-08-07
 
 ### Added
-- Lançamento inicial do pacote brdocs
+- Initial release of the brdocs package
